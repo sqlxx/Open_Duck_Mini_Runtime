@@ -4,6 +4,8 @@ import numpy as np
 import time
 import argparse
 
+from mini_bdx_runtime.duck_config import configured_serial_port
+
 parser = argparse.ArgumentParser(description="Record data from Feetech motor")
 parser.add_argument(
     "--new_firmware",
@@ -12,7 +14,7 @@ parser.add_argument(
     default=False,
 )
 args = parser.parse_args()
-io = FeetechSTS3215IO("/dev/ttyACM0")
+io = FeetechSTS3215IO(configured_serial_port())
 
 
 def convert_load(raw_load):

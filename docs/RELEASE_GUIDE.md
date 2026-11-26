@@ -1,5 +1,7 @@
 # This will help you create your own .iso release of the Open Duck Runtime environment, if you don't want to use an official release
 
+> This guide builds a Raspberry Pi Zero 2W image. It does not apply to the Radxa Zero 3W. Zero 3W setup is in the README.
+
 BEWARE! You only need to read this if you are looking to create your own distributable .iso file of your Open Duck, or if you did not use one of the release images but still want to add the additional features as described below.
 
 Firstly, you need to write the unmodified Linux OS to the SD card, then set-up the SD card of your RaspberryPI as described in the tutorial, like cloning the Open Duck Runtime repository and getting everything to work in your duck.

@@ -1,5 +1,7 @@
 # Pre‑Built Duck Image (BDX V2)
 
+> This image is only for the Raspberry Pi Zero 2W. Radxa Zero 3W setup is in the README. Do not flash this image onto a Radxa board.
+
 A ready‑to‑flash Raspberry Pi image to get your Duck up and walking in minutes. This image is a **fully configured Linux distribution** based on Raspberry Pi Os Lite 64 Bit Bookworm, that includes all required packages, scripts, and conveniences. It will be kept in sync with this repository over time.
 
 > This is currently only confirmed working on the Raspberry Pi Zero from the BOM

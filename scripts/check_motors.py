@@ -23,7 +23,7 @@ def main():
     except Exception as e:
         print(f"Error connecting to hardware: {e}")
         print(f"Error details: {traceback.format_exc()}")
-        print("Check that the robot is powered on and USB connection is correct.")
+        print("Check that the robot is powered on and serial_port in duck_config.json is correct.")
         return
 
     # Turn on with low torque for safety - ONE BY ONE

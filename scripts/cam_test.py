@@ -1,18 +1,20 @@
-from picamzero import Camera
+import os
+
 import cv2
 
 print("Initializing camera ...")
-cam = Camera()
-# cam.still_size = (512, 512)
+cam = cv2.VideoCapture(0, cv2.CAP_V4L2)
+if not cam.isOpened():
+    raise SystemExit("Could not open camera device 0")
 print("Camera initialized")
 
-im = cam.capture_array()
+ok, im = cam.read()
+if not ok or im is None:
+    raise SystemExit("Camera read failed")
 im = cv2.resize(im, (512, 512))
 im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
 
-cv2.imwrite("/home/bdxv2/aze.jpg", im)
-# cv2.imshow("Image", im)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# cam.take_photo("/home/bdxv2/aze.jpg")
+path = os.path.expanduser("~/duck_capture.jpg")
+cv2.imwrite(path, im)
+print(f"Wrote {path}")
+cam.release()

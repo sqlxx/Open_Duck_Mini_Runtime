@@ -3,9 +3,17 @@ import time
 import os
 import random
 
+from mini_bdx_runtime.zero3 import ALSA_CARD
+
+
+def _prefer_i2s_card():
+    os.environ.setdefault("SDL_AUDIODRIVER", "alsa")
+    os.environ.setdefault("AUDIODEV", f"hw:{ALSA_CARD},0")
+
 
 class Sounds:
     def __init__(self, volume=1.0, sound_directory="./"):
+        _prefer_i2s_card()
         pygame.mixer.init()
         pygame.mixer.music.set_volume(volume)
         self.sounds = {}

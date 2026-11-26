@@ -6,9 +6,11 @@ from mini_bdx_runtime.duck_config import DuckConfig
 
 
 class HWI:
-    def __init__(self, duck_config: DuckConfig, usb_port: str = "/dev/ttyACM0"):
+    def __init__(self, duck_config: DuckConfig, usb_port: str = None):
 
         self.duck_config = duck_config
+        if usb_port is None:
+            usb_port = duck_config.serial_port
 
         # Order matters here
         self.joints = {

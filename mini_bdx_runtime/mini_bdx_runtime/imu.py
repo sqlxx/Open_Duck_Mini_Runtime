@@ -1,19 +1,14 @@
-import adafruit_bno055
-import board
-import busio
-import numpy as np
-import pickle
-import os
-
-# import serial
-
+import time
 from queue import Queue
 from threading import Thread
-import time
+
+import adafruit_bno08x
+import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+from mini_bdx_runtime.zero3 import open_bno085, remap_matrix
 
-# TODO filter spikes
+
 class Imu:
     def __init__(
         self, sampling_freq, user_pitch_bias=0, calibrate=False, upside_down=True
@@ -22,78 +17,16 @@ class Imu:
         self.user_pitch_bias = user_pitch_bias
         self.nominal_pitch_bias = 0
         self.calibrate = calibrate
+        self.upside_down = upside_down
 
-        # self.uart = serial.Serial("/dev/ttyS0", baudrate=9600)
-        # self.imu = adafruit_bno055.BNO055_UART(self.uart)
-
-        i2c = busio.I2C(board.SCL, board.SDA)
-        self.imu = adafruit_bno055.BNO055_I2C(i2c)
-
-        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-        # self.imu.mode = adafruit_bno055.ACCGYRO_MODE
-        # self.imu.mode = adafruit_bno055.GYRONLY_MODE
-        # self.imu.mode = adafruit_bno055.NDOF_MODE
-        # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
-
-        if upside_down:
-            self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
-                adafruit_bno055.AXIS_REMAP_X,
-                adafruit_bno055.AXIS_REMAP_Z,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-            )
-        else:
-            self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
-                adafruit_bno055.AXIS_REMAP_X,
-                adafruit_bno055.AXIS_REMAP_Z,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_POSITIVE,
-                adafruit_bno055.AXIS_REMAP_POSITIVE,
-            )
-
-        self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
+        self.imu = open_bno085()
+        self.imu.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
+        self._remap = R.from_matrix(remap_matrix(upside_down))
 
         if self.calibrate:
-            self.imu.mode = adafruit_bno055.NDOF_MODE
-            calibrated = self.imu.calibrated
-            while not calibrated:
-                print("Calibration status: ", self.imu.calibration_status)
-                print("Calibrated : ", self.imu.calibrated)
-                calibrated = self.imu.calibrated
-                time.sleep(0.1)
-            print("CALIBRATION DONE")
-            offsets_accelerometer = self.imu.offsets_accelerometer
-            offsets_gyroscope = self.imu.offsets_gyroscope
-            offsets_magnetometer = self.imu.offsets_magnetometer
+            print("BNO085 calibrates inside the chip. imu_calib_data.pkl is not used.")
 
-            imu_calib_data = {
-                "offsets_accelerometer": offsets_accelerometer,
-                "offsets_gyroscope": offsets_gyroscope,
-                "offsets_magnetometer": offsets_magnetometer,
-            }
-            for k, v in imu_calib_data.items():
-                print(k, v)
-
-            pickle.dump(imu_calib_data, open("imu_calib_data.pkl", "wb"))
-
-            print("Saved", "imu_calib_data.pkl")
-            exit()
-
-        if os.path.exists("imu_calib_data.pkl"):
-            imu_calib_data = pickle.load(open("imu_calib_data.pkl", "rb"))
-            self.imu.mode = adafruit_bno055.CONFIG_MODE
-            time.sleep(0.1)
-            self.imu.offsets_accelerometer = imu_calib_data["offsets_accelerometer"]
-            self.imu.offsets_gyroscope = imu_calib_data["offsets_gyroscope"]
-            self.imu.offsets_magnetometer = imu_calib_data["offsets_magnetometer"]
-            self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-            time.sleep(0.1)
-        else:
-            print("imu_calib_data.pkl not found")
-            print("Imu is running uncalibrated")
+        self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
@@ -107,23 +40,19 @@ class Imu:
         while True:
             s = time.time()
             try:
-                # imu returns scalar first
-                raw_orientation = np.array(self.imu.quaternion).copy()  # quat
-                euler = (
-                    R.from_quat(raw_orientation, scalar_first=True)
-                    .as_euler("xyz")
-                    .copy()
-                )
+                # BNO085 game quaternion is (i, j, k, real): scalar last.
+                raw_orientation = self.imu.game_quaternion
+                if raw_orientation is None:
+                    continue
+                orientation = R.from_quat(raw_orientation) * self._remap.inv()
+                euler = orientation.as_euler("xyz").copy()
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
-            # Converting to correct axes
-            # euler = self.convert_axes(euler)
             euler[1] -= np.deg2rad(self.pitch_bias)
-            # euler[2] = 0  # ignoring yaw
 
-            # gives scalar last, which is what isaac wants
+            # scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
             self.imu_queue.put(final_orientation_quat.copy())
@@ -151,11 +80,8 @@ class Imu:
 
 if __name__ == "__main__":
     imu = Imu(50, calibrate=True, upside_down=False)
-    # imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
-        # print(data)
-        print("gyro", np.around(data["gyro"], 3))
-        print("accelero", np.around(data["accelero"], 3))
+        print("quat", np.around(data, 3))
         print("---")
         time.sleep(1 / 25)

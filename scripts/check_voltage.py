@@ -1,7 +1,9 @@
 from pypot.feetech import FeetechSTS3215IO
 
+from mini_bdx_runtime.duck_config import configured_serial_port
+
 io = FeetechSTS3215IO(
-    "/dev/ttyACM0",
+    configured_serial_port(),
     baudrate=1000000,
     use_sync_read=True,
 )

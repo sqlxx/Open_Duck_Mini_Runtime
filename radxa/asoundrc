@@ -1,0 +1,13 @@
+# Default playback and capture device for the I2S3 MAX98357 / microphone.
+# Copy to ~/.asoundrc so pygame does not send audio to HDMI.
+pcm.!default {
+    type plug
+    slave {
+        pcm "hw:dummysound,0"
+    }
+}
+
+ctl.!default {
+    type hw
+    card dummysound
+}

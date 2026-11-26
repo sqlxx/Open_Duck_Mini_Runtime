@@ -26,7 +26,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         duck_config_path: str = f"{HOME_DIR}/duck_config.json",
-        serial_port: str = "/dev/ttyACM0",
+        serial_port: str = None,
         control_freq: float = 50,
         pid=[30, 0, 0],
         action_scale=0.25,
@@ -112,7 +112,7 @@ class RLWalk:
         if self.duck_config.eyes:
             self.eyes = Eyes()
         if self.duck_config.projector:
-            self.projector = Projector()
+            self.projector = Projector(self.duck_config.projector_pin)
         if self.duck_config.speaker:
             self.sounds = Sounds(
                 volume=1.0, sound_directory="../mini_bdx_runtime/assets/"

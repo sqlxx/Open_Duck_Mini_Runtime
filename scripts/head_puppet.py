@@ -25,7 +25,7 @@ if duck_config.antennas:
 if duck_config.eyes:
     eyes = Eyes()
 if duck_config.projector:
-    projector = Projector()
+    projector = Projector(duck_config.projector_pin)
 
 hwi = HWI(duck_config)
 

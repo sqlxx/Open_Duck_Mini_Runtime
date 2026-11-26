@@ -2,6 +2,8 @@ import json
 from typing import Optional
 import os
 
+from mini_bdx_runtime.zero3 import SERIAL_PORT
+
 HOME_DIR = os.path.expanduser("~")
 
 
@@ -47,6 +49,8 @@ class DuckConfig:
                 exit(1)
 
         self.start_paused = self.json_config.get("start_paused", False)
+        self.serial_port = self.json_config.get("serial_port", SERIAL_PORT)
+        self.projector_pin = self.json_config.get("projector_pin", None)
         self.imu_upside_down = self.json_config.get("imu_upside_down", False)
         self.phase_frequency_factor_offset = self.json_config.get(
             "phase_frequency_factor_offset", 0.0
@@ -81,3 +85,7 @@ class DuckConfig:
                 "right_ankle": 0.0,
             },
         )
+
+
+def configured_serial_port() -> str:
+    return DuckConfig(ignore_default=True).serial_port

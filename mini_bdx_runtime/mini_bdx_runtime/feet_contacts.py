@@ -1,19 +1,16 @@
-import board
-import digitalio
 import time
 
-LEFT_FOOT_PIN = board.D22
-RIGHT_FOOT_PIN = board.D27
+from mini_bdx_runtime.zero3 import GpioLine, LEFT_FOOT, RIGHT_FOOT
+
 
 class FeetContacts:
     def __init__(self):
-        self.left_foot = digitalio.DigitalInOut(LEFT_FOOT_PIN)
-        self.left_foot.direction = digitalio.Direction.INPUT
-        self.left_foot.pull = digitalio.Pull.UP
-
-        self.right_foot = digitalio.DigitalInOut(RIGHT_FOOT_PIN)
-        self.right_foot.direction = digitalio.Direction.INPUT
-        self.right_foot.pull = digitalio.Pull.UP
+        self.left_foot = GpioLine(
+            *LEFT_FOOT, consumer="duck-foot-left", output=False, pull_up=True
+        )
+        self.right_foot = GpioLine(
+            *RIGHT_FOOT, consumer="duck-foot-right", output=False, pull_up=True
+        )
 
     def get(self):
         left = not self.left_foot.value
@@ -21,8 +18,9 @@ class FeetContacts:
         return [left, right]
 
     def stop(self):
-        self.left_foot.deinit()
-        self.right_foot.deinit()
+        self.left_foot.close()
+        self.right_foot.close()
+
 
 if __name__ == "__main__":
     feet_contacts = FeetContacts()

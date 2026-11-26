@@ -3,7 +3,9 @@ import pickle
 import numpy as np
 import time
 
-io = FeetechSTS3215IO("/dev/ttyACM0")
+from mini_bdx_runtime.duck_config import configured_serial_port
+
+io = FeetechSTS3215IO(configured_serial_port())
 
 # accelerations = [0, 10, 50, 100, 200, 255]
 accelerations = [0]

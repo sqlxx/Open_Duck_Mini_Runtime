@@ -1,5 +1,39 @@
 # Open Duck Mini Runtime
 
+## Radxa Zero 3W
+
+This tree drives a Zero 3W. The prebuilt image in the releases section is still Raspberry Pi Zero 2W only. Do not flash it onto the Radxa.
+
+Install the system packages, enable the header functions, then install this repo:
+
+```bash
+sudo apt update
+sudo apt install -y python3-pip python3-venv python3-libgpiod i2c-tools gpiod alsa-utils
+```
+
+In `rsetup`, enable these overlays and reboot:
+
+- `i2c4-m0` — IMU on pins 27 and 28
+- `i2s3-m0` — MAX98357 and the I2S microphone
+- `pwm14-m0` — left ear, pin 7
+- `pwm12-m1` — right ear, pin 21 (M1, not M0)
+- `uart4-m1` — Feetech bus, pin 16 is RX and pin 18 is TX
+
+```bash
+cp example_config.json ~/duck_config.json
+cp radxa/asoundrc ~/.asoundrc
+pip install -e .
+python3 scripts/check_zero3.py
+```
+
+`~/duck_config.json` uses `serial_port` `/dev/ttyS4` at 1_000_000 baud. The Feetech bus is half-duplex. Keep a 3.3V half-duplex adapter between UART4 and the servo wire. Do not connect a 5V data line directly to pins 16 or 18. If the bus is still the USB adapter, set `serial_port` to `/dev/ttyACM0`.
+
+The IMU is a BNO085 at I2C address `0x4B`. It calibrates on the chip. `projector` stays off until `projector_pin` is set, for example `{"chip": "gpiochip3", "line": 1}`.
+
+A camera, if fitted, uses OpenCV Video4Linux (`sudo apt install python3-opencv`) instead of `picamzero`.
+
+Do not pip-install `gpiod`. The board package `python3-libgpiod` is the 1.x API this code calls. A pip `gpiod` 2.x install uses a different API.
+
 ## Simplified install via pre-built Duck image
 
 As an alternative to setting up everything manually, the image release (current version: 0.2.3), available in the releases section of this repository, provides a ready-to-flash system image for the Open Duck Mini platform. It is tested to work on Open Duck hardware built to the standard specs.

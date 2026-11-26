@@ -6,6 +6,7 @@ from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.duck_config import DuckConfig
 import time
 
+port = DuckConfig(ignore_default=True).serial_port
 dummy_config = DuckConfig(config_json_path=None, ignore_default=True)
 
 print("======")
@@ -18,7 +19,7 @@ input(
     "Press any key to start. The robot will move to its zero position. Make sure it is safe to do so. At any time, press ctrl+c to stop, the motors will be turned off."
 )
 
-hwi = HWI(dummy_config)
+hwi = HWI(dummy_config, port)
 
 
 hwi.init_pos = hwi.zero_pos

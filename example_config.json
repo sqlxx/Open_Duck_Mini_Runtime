@@ -1,5 +1,7 @@
 {
     "start_paused": false,
+    "serial_port": "/dev/ttyS4",
+    "projector_pin": null,
     "imu_upside_down": false,
     "phase_frequency_factor_offset": 0.0,
     "expression_features": {

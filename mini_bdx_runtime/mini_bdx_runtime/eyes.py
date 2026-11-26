@@ -1,20 +1,14 @@
-import board
-import digitalio
 import random
 import time
 from threading import Thread, Event
 
-LEFT_EYE_PIN = board.D24
-RIGHT_EYE_PIN = board.D23
+from mini_bdx_runtime.zero3 import GpioLine, LEFT_EYE, RIGHT_EYE
 
 
 class Eyes:
     def __init__(self, blink_duration=0.1, min_interval=1.0, max_interval=4.0):
-        self.left_eye = digitalio.DigitalInOut(LEFT_EYE_PIN)
-        self.left_eye.direction = digitalio.Direction.OUTPUT
-
-        self.right_eye = digitalio.DigitalInOut(RIGHT_EYE_PIN)
-        self.right_eye.direction = digitalio.Direction.OUTPUT
+        self.left_eye = GpioLine(*LEFT_EYE, consumer="duck-eye-left", output=True)
+        self.right_eye = GpioLine(*RIGHT_EYE, consumer="duck-eye-right", output=True)
 
         self.blink_duration = blink_duration
         self.min_interval = min_interval
@@ -44,8 +38,8 @@ class Eyes:
         self._stop_event.set()
         self._thread.join()
         self._set_eyes(False)
-        self.left_eye.deinit()
-        self.right_eye.deinit()
+        self.left_eye.close()
+        self.right_eye.close()
 
 
 if __name__ == "__main__":
@@ -55,4 +49,3 @@ if __name__ == "__main__":
             time.sleep(1)
     finally:
         e.stop()
-

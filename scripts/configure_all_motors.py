@@ -1,6 +1,8 @@
 from pypot.feetech import FeetechSTS3215IO
 import time
 
+from mini_bdx_runtime.duck_config import configured_serial_port
+
 joints = {
     "left_hip_yaw": 20,
     "left_hip_roll": 21,
@@ -21,7 +23,7 @@ joints = {
 joints_inv = {v: k for k, v in joints.items()}
 
 ids = list(joints.values())
-io = FeetechSTS3215IO("/dev/ttyACM0")
+io = FeetechSTS3215IO(configured_serial_port())
 for current_id in ids:
     print("Configuring", joints_inv[current_id])
     io.set_lock({current_id: 0})
