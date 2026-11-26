@@ -24,7 +24,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # open a new shell so `uv` is on PATH
 
 cp example_config.json ~/duck_config.json
-cp radxa/asoundrc ~/.asoundrc
+sudo cp radxa/asoundrc /etc/asound.conf
+rm -f ~/.asoundrc
+sudo cp radxa/i2s-keepalive.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now i2s-keepalive.service
 uv venv --python /usr/bin/python3 --system-site-packages
 uv sync
 uv run python scripts/check_zero3.py

@@ -21,7 +21,7 @@
 - 耳朵 PWM 用 sysfs：50 Hz，脉宽 1.0–2.0 ms，中位 1.5 ms。`stop()` 时把 `enable` 写成 0
 - IMU 用 `adafruit-circuitpython-bno08x`，`adafruit-extended-bus` 打开 I2C 总线 4。加速度计和陀螺仪给走路；`imu.py` 的姿态用 Game Rotation Vector。读数后做和 BNO055 相同的轴变换：`upside_down` 时新坐标为 `(-y, -x, -z)`，否则为 `(-y, +x, +z)`。不再读写 `imu_calib_data.pkl`
 - 摄像头用 OpenCV `VideoCapture`（V4L2）
-- 手柄继续用 pygame。喇叭初始化前指定 ALSA 声卡 `dummysound`。配置在 `radxa/asoundrc`
+- 手柄继续用 pygame。喇叭初始化前指定 ALSA 声卡 `dummysound`。配置在 `radxa/asoundrc`，装到 `/etc/asound.conf`。播放走 dmix，`radxa/i2s-keepalive.service` 一直往里写静音，I2S 时钟不停，MAX98357 就不会在声卡开关时咔咔响
 
 依赖写在 `pyproject.toml`。GPIO 继续用系统的 `python3-libgpiod` 1.x。虚拟环境要用系统 Python 并带上 `--system-site-packages`。不要用 uv 或 pip 安装 `gpiod` 2.x。
 

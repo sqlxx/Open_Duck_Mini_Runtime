@@ -1,0 +1,11 @@
+[Unit]
+Description=Stream silence to the MAX98357 so the I2S clock never stops
+After=sound.target
+
+[Service]
+ExecStart=/usr/bin/aplay -q -D dmixer -t raw -f S16_LE -r 48000 -c 2 /dev/zero
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
