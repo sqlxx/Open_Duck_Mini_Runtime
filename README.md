@@ -8,7 +8,7 @@ Install the system packages, enable the header functions, then install this repo
 
 ```bash
 sudo apt update
-sudo apt install -y python3-pip python3-venv python3-libgpiod i2c-tools gpiod alsa-utils
+sudo apt install -y python3-libgpiod i2c-tools gpiod alsa-utils curl ca-certificates
 ```
 
 In `rsetup`, enable these overlays and reboot:
@@ -20,10 +20,14 @@ In `rsetup`, enable these overlays and reboot:
 - `uart4-m1` — Feetech bus, pin 16 is RX and pin 18 is TX
 
 ```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# open a new shell so `uv` is on PATH
+
 cp example_config.json ~/duck_config.json
 cp radxa/asoundrc ~/.asoundrc
-pip install -e .
-python3 scripts/check_zero3.py
+uv venv --python /usr/bin/python3 --system-site-packages
+uv sync
+uv run python scripts/check_zero3.py
 ```
 
 `~/duck_config.json` uses `serial_port` `/dev/ttyS4` at 1_000_000 baud. The Feetech bus is half-duplex. Keep a 3.3V half-duplex adapter between UART4 and the servo wire. Do not connect a 5V data line directly to pins 16 or 18. If the bus is still the USB adapter, set `serial_port` to `/dev/ttyACM0`.
@@ -32,7 +36,7 @@ The IMU is a BNO085 at I2C address `0x4B`. It calibrates on the chip. `projector
 
 A camera, if fitted, uses OpenCV Video4Linux (`sudo apt install python3-opencv`) instead of `picamzero`.
 
-Do not pip-install `gpiod`. The board package `python3-libgpiod` is the 1.x API this code calls. A pip `gpiod` 2.x install uses a different API.
+Create the virtual environment with the system Python and `--system-site-packages` before `uv sync`. That is how the environment sees Debian's `python3-libgpiod`. The system Python must be 3.10, 3.11, or 3.12. Do not install `gpiod` with uv or pip. The board package is the 1.x API this code calls. A PyPI `gpiod` 2.x install uses a different API. If `.venv` was created without `--system-site-packages`, delete it and run the `uv venv` command again.
 
 ## Simplified install via pre-built Duck image
 

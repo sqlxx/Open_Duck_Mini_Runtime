@@ -23,7 +23,7 @@
 - 摄像头用 OpenCV `VideoCapture`（V4L2）
 - 手柄继续用 pygame。喇叭初始化前指定 ALSA 声卡 `dummysound`。配置在 `radxa/asoundrc`
 
-`setup.cfg` 去掉 `adafruit-circuitpython-bno055`，加入 `adafruit-circuitpython-bno08x` 和 `adafruit-extended-bus`。不安装 pip 的 `gpiod` 2.x。
+依赖写在 `pyproject.toml`。GPIO 继续用系统的 `python3-libgpiod` 1.x。虚拟环境要用系统 Python 并带上 `--system-site-packages`。不要用 uv 或 pip 安装 `gpiod` 2.x。
 
 ## 串口
 

@@ -1,3 +1,36 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-bdx-runtime"
+version = "0.0.1"
+description = "Runtime code for mini BDX"
+readme = "README.md"
+authors = [{ name = "Antoine Pirrone", email = "antoine.pirrone@gmail.com" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "rustypot==0.1.0",
+    "onnxruntime==1.18.1",
+    "numpy==1.26.4",
+    "adafruit-circuitpython-bno08x",
+    "adafruit-extended-bus",
+    "scipy==1.15.1",
+    "pygame==2.6.0",
+    "pypot @ git+https://github.com/pollen-robotics/pypot@support-feetech-sts3215",
+    "openai==1.70.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/apirrone/mini_BDX_runtime"
+
+[tool.setuptools]
+package-dir = {"" = "mini_bdx_runtime"}
+zip-safe = true
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["mini_bdx_runtime"]
+
+[tool.uv]
+python-preference = "system"
