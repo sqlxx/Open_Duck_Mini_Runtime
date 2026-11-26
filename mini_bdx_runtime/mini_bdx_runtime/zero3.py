@@ -138,11 +138,16 @@ class PwmServo:
         if not self._pwm.is_dir():
             _write_sysfs(chip / "export", "0")
             time.sleep(0.05)
+        # A freshly exported channel is already disabled with period 0.
+        # Writing enable=0 in that state returns EINVAL, and polarity cannot
+        # be changed until period is nonzero.
         self._disable()
-        polarity = self._pwm / "polarity"
-        if polarity.exists():
-            _write_sysfs(polarity, "normal")
+        if self._read_int("duty_cycle") > SERVO_PERIOD_NS:
+            _write_sysfs(self._pwm / "duty_cycle", "0")
         _write_sysfs(self._pwm / "period", str(SERVO_PERIOD_NS))
+        polarity = self._pwm / "polarity"
+        if polarity.exists() and polarity.read_text().strip() != "normal":
+            _write_sysfs(polarity, "normal")
         self.set_pulse_ns(SERVO_CENTER_PULSE_NS)
         _write_sysfs(self._pwm / "enable", "1")
 
@@ -150,9 +155,15 @@ class PwmServo:
         pulse_ns = int(min(max(pulse_ns, SERVO_MIN_PULSE_NS), SERVO_MAX_PULSE_NS))
         _write_sysfs(self._pwm / "duty_cycle", str(pulse_ns))
 
+    def _read_int(self, name: str) -> int:
+        try:
+            return int((self._pwm / name).read_text().strip())
+        except (OSError, ValueError):
+            return 0
+
     def _disable(self):
         enable = self._pwm / "enable"
-        if enable.exists():
+        if enable.exists() and enable.read_text().strip() != "0":
             _write_sysfs(enable, "0")
 
     def stop(self):
