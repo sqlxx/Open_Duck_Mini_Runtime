@@ -19,7 +19,7 @@ duck_config = DuckConfig()
 xbox_controller = XBoxController(50, only_head_control=True)
 
 if duck_config.speaker:
-    sounds = Sounds(volume=0.3, sound_directory="../mini_bdx_runtime/assets/")
+    sounds = Sounds(volume=0.2, sound_directory="../mini_bdx_runtime/assets/")
 if duck_config.antennas:
     antennas = Antennas()
 if duck_config.eyes:
