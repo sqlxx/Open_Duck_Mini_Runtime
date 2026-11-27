@@ -5,7 +5,7 @@
 ## 引脚
 
 - 眼睛：19 脚 GPIO4_C3（`gpiochip4` 线 19）左，24 脚 GPIO4_C6（线 22）右，推挽输出
-- 脚开关：29 脚 GPIO3_B3（`gpiochip3` 线 11）左，31 脚 GPIO3_B4（线 12）右，输入并打开内部上拉，按下为低
+- 脚开关：29 脚 GPIO3_B3（`gpiochip3` 线 11）左，31 脚 GPIO3_B4（线 12）右，输入、内部上拉，按下为低。Rockchip 的 GPIO 驱动不接受 libgpiod 的上下拉请求（`set_config` 返回 `-ENOTSUPP`，内核不报错），上拉要靠 `radxa/duck-feet-pullup.dts` 这个 overlay 在开机时由 pinctrl 写入
 - 左耳：7 脚 PWM14_M0，控制器 `fe700020.pwm`
 - 右耳：21 脚 PWM12_M1，控制器 `fe700000.pwm`（必须是 M1，不能是 M0）
 - IMU：I2C4（`/dev/i2c-4`，27/28 脚），地址 `0x4B`，BNO085
@@ -19,7 +19,7 @@
 
 - GPIO 用系统里的 libgpiod 1.x（`python3-libgpiod`）
 - 耳朵 PWM 用 sysfs：50 Hz，脉宽 1.0–2.0 ms，中位 1.5 ms。`stop()` 时把 `enable` 写成 0
-- IMU 用 `adafruit-circuitpython-bno08x`，`adafruit-extended-bus` 打开 I2C 总线 4。加速度计和陀螺仪给走路；`imu.py` 的姿态用 Game Rotation Vector。读数后做和 BNO055 相同的轴变换：`upside_down` 时新坐标为 `(-y, -x, -z)`，否则为 `(-y, +x, +z)`。不再读写 `imu_calib_data.pkl`
+- IMU 用 `adafruit-circuitpython-bno08x`，`adafruit-extended-bus` 打开 I2C 总线 4。加速度计和陀螺仪给走路；`imu.py` 的姿态用 Game Rotation Vector。读数后按这块鸭子上量到的安装方向变换：`upside_down` 时新坐标为 `(-x, -y, +z)`，否则为 `(-x, +y, -z)`。平放时加速度接近 `(0, 0, +g)`，脸朝下时 X 变负，左侧朝下时 Y 变负。不再读写 `imu_calib_data.pkl`
 - 摄像头用 OpenCV `VideoCapture`（V4L2）
 - 手柄继续用 pygame。喇叭初始化前指定 ALSA 声卡 `dummysound`。配置在 `radxa/asoundrc`，装到 `/etc/asound.conf`。播放走 dmix，`radxa/i2s-keepalive.service` 一直往里写静音，I2S 时钟不停，MAX98357 就不会在声卡开关时咔咔响
 

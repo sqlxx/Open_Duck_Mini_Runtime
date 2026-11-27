@@ -1,0 +1,3 @@
+# Export channel 0 of the two ear PWM controllers at boot:
+# fe700020.pwm (PWM14_M0, left ear) and fe700000.pwm (PWM12_M1, right ear).
+SUBSYSTEM=="pwm", KERNEL=="pwmchip*", ACTION=="add", KERNELS=="fe700000.pwm|fe700020.pwm", ATTR{export}="0"

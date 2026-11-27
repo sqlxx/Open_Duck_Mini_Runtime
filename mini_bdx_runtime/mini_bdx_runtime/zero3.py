@@ -11,6 +11,7 @@ Header wiring used on this duck:
   pins 16/18 UART4_M1 Feetech bus (/dev/ttyS4)
 """
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -35,18 +36,23 @@ SERVO_CENTER_PULSE_NS = 1_500_000
 
 
 def remap_matrix(upside_down: bool) -> np.ndarray:
-    """Same axis change the BNO055 driver applied in the chip.
+    """Map the BNO085 axes onto the walk policy frame.
 
-    upside_down: (x, y, z) -> (-y, -x, -z)
-    otherwise:   (x, y, z) -> (-y,  x,  z)
+    Measured on this duck with the chip's raw axes already in the old
+    BNO055 remap: nose-down loads +Y, left-side-down loads +X, and rest
+    puts gravity on -Z. The policy wants rest near (0, 0, +g), nose-down
+    on -X, and left-side-down on -Y.
+
+    upside_down: (x, y, z) -> (-x, -y,  z)
+    otherwise:   (x, y, z) -> (-x,  y, -z)
     """
     if upside_down:
         return np.array(
-            [[0.0, -1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 0.0, -1.0]],
+            [[-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]],
             dtype=float,
         )
     return np.array(
-        [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]],
+        [[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
         dtype=float,
     )
 
@@ -137,7 +143,14 @@ class PwmServo:
         self._pwm = chip / "pwm0"
         if not self._pwm.is_dir():
             _write_sysfs(chip / "export", "0")
-            time.sleep(0.05)
+            # udev hands the new attributes to group pwm shortly after export;
+            # until then they are root-only.
+            deadline = time.monotonic() + 2.0
+            while time.monotonic() < deadline:
+                attrs = [self._pwm / name for name in ("period", "duty_cycle", "enable")]
+                if all(os.access(attr, os.W_OK) for attr in attrs):
+                    break
+                time.sleep(0.02)
         # A freshly exported channel is already disabled with period 0.
         # Writing enable=0 in that state returns EINVAL, and polarity cannot
         # be changed until period is nonzero.

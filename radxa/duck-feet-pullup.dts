@@ -1,0 +1,36 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * The Rockchip GPIO driver ignores bias flags from libgpiod, so the foot
+ * switch pull-ups must come from pinctrl. This hogs GPIO3_B3 (pin 29) and
+ * GPIO3_B4 (pin 31) as GPIO inputs with the SoC pull-up enabled at boot.
+ */
+
+/ {
+	metadata {
+		title = "Open Duck foot switch pull-ups";
+		compatible = "radxa,zero3";
+		category = "misc";
+		exclusive = "GPIO3_B3", "GPIO3_B4";
+		description = "Enable the internal pull-up on pin 29 and pin 31.";
+	};
+
+	fragment@0 {
+		target = <&pinctrl>;
+
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&duck_feet_pullup>;
+
+			duck-feet {
+				duck_feet_pullup: duck-feet-pullup {
+					/* bank 3, pins B3 and B4, RK_FUNC_GPIO */
+					rockchip,pins =
+						<3 11 0 &pcfg_pull_up>,
+						<3 12 0 &pcfg_pull_up>;
+				};
+			};
+		};
+	};
+};

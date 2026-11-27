@@ -19,6 +19,15 @@ In `rsetup`, enable these overlays and reboot:
 - `pwm12-m1` — right ear, pin 21 (M1, not M0)
 - `uart4-m1` — Feetech bus, pin 16 is RX and pin 18 is TX
 
+The foot switches on pins 29 and 31 need the pull-up overlay in this repo. The Rockchip GPIO driver ignores pull-up requests from libgpiod, so without it a released switch reads as pressed:
+
+```bash
+dtc -@ -I dts -O dtb -o duck-feet-pullup.dtbo radxa/duck-feet-pullup.dts
+sudo cp duck-feet-pullup.dtbo /boot/dtbo/
+sudo u-boot-update
+sudo reboot
+```
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 # open a new shell so `uv` is on PATH
@@ -26,6 +35,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 cp example_config.json ~/duck_config.json
 sudo cp radxa/asoundrc /etc/asound.conf
 rm -f ~/.asoundrc
+sudo cp radxa/60-duck-ear-pwm.rules /etc/udev/rules.d/
 sudo cp radxa/i2s-keepalive.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now i2s-keepalive.service
