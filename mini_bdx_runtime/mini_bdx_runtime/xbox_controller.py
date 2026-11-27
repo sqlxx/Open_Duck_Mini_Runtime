@@ -16,10 +16,10 @@ HEAD_PITCH_RANGE = [-0.78, 0.3]
 HEAD_YAW_RANGE = [-0.5, 0.5]
 HEAD_ROLL_RANGE = [-0.5, 0.5]
 
-# pygame joystick indices. Linux lists axes and buttons by evdev code.
-# This DualShock 4 reports ABS_X, ABS_Y, ABS_Z (L2), ABS_RX, ABS_RY, ABS_RZ (R2).
-# Its key bitmap includes the unused BTN_C and BTN_Z gaps, so the face
-# buttons are Cross, Circle, Triangle, Square at 0, 1, 3, 4, and L1/R1 at 6/7.
+# pygame joystick indices measured on this duck's DualShock 4.
+# At rest, axes 3 and 4 sit at -1 (L2 and R2); 0/1 are the left stick and
+# 2/5 are the right stick. Face buttons come out Square, Cross, Circle,
+# Triangle, then L1, R1, and the digital L2/R2 clicks.
 XBOX_LAYOUT = {
     "lx": 0,
     "ly": 1,
@@ -37,16 +37,16 @@ XBOX_LAYOUT = {
 PS4_LAYOUT = {
     "lx": 0,
     "ly": 1,
-    "rx": 3,
-    "ry": 4,
-    "l2": 2,
-    "r2": 5,
-    "a": 0,  # Cross, pause
-    "b": 1,  # Circle, sound
+    "rx": 2,
+    "ry": 5,
+    "l2": 3,
+    "r2": 4,
+    "a": 1,  # Cross, pause
+    "b": 2,  # Circle, sound
     "y": 3,  # Triangle, head control
-    "x": 4,  # Square, projector
-    "lb": 6,  # L1, sprint
-    "rb": 7,  # R1
+    "x": 0,  # Square, projector
+    "lb": 4,  # L1, sprint
+    "rb": 5,  # R1
 }
 
 
@@ -261,5 +261,18 @@ if __name__ == "__main__":
     controller = XBoxController(20)
 
     while True:
-        print(controller.get_last_command())
+        commands, buttons, left_trigger, right_trigger = controller.get_last_command()
+        print(
+            f"forward {commands[0]:+.3f}  strafe {commands[1]:+.3f}  yaw {commands[2]:+.3f}"
+            f"  L2 {left_trigger:.2f}  R2 {right_trigger:.2f}"
+            f"  cross {buttons.A.is_pressed}"
+            f"  circle {buttons.B.is_pressed}"
+            f"  square {buttons.X.is_pressed}"
+            f"  triangle {buttons.Y.is_pressed}"
+            f"  L1 {buttons.LB.is_pressed}"
+            f"  R1 {buttons.RB.is_pressed}"
+            f"  up {buttons.dpad_up.is_pressed}"
+            f"  down {buttons.dpad_down.is_pressed}"
+            f"  raw {[i for i in range(controller.p1.get_numbuttons()) if controller.p1.get_button(i)]}"
+        )
         time.sleep(0.05)
