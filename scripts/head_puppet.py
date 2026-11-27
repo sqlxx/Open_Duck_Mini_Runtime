@@ -19,7 +19,7 @@ duck_config = DuckConfig()
 xbox_controller = XBoxController(50, only_head_control=True)
 
 if duck_config.speaker:
-    sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
+    sounds = Sounds(volume=0.3, sound_directory="../mini_bdx_runtime/assets/")
 if duck_config.antennas:
     antennas = Antennas()
 if duck_config.eyes:
@@ -99,5 +99,7 @@ try:
         # pygame.event.pump()  # process event queue
         time.sleep(1 / 60)
 except KeyboardInterrupt:
+    if duck_config.eyes:
+        eyes.stop()
     if duck_config.antennas:
         antennas.stop()

@@ -23,7 +23,9 @@ class Sounds:
                 if file.endswith(".wav"):
                     sound_path = os.path.join(sound_directory, file)
                     try:
-                        self.sounds[file] = pygame.mixer.Sound(sound_path)
+                        sound = pygame.mixer.Sound(sound_path)
+                        sound.set_volume(volume)
+                        self.sounds[file] = sound
                         print(f"Loaded: {file}")
                     except pygame.error as e:
                         print(f"Failed to load {file}: {e}")

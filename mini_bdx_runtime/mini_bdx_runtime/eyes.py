@@ -26,10 +26,12 @@ class Eyes:
         try:
             while not self._stop_event.is_set():
                 self._set_eyes(False)
-                time.sleep(self.blink_duration)
+                if self._stop_event.wait(self.blink_duration):
+                    break
                 self._set_eyes(True)
                 next_blink = random.uniform(self.min_interval, self.max_interval)
-                time.sleep(next_blink)
+                if self._stop_event.wait(next_blink):
+                    break
         except Exception as err:
             print(f"Error in eye thread: {err}")
             self._stop_event.set()
