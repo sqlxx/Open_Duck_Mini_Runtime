@@ -16,6 +16,47 @@ HEAD_PITCH_RANGE = [-0.78, 0.3]
 HEAD_YAW_RANGE = [-0.5, 0.5]
 HEAD_ROLL_RANGE = [-0.5, 0.5]
 
+# pygame joystick indices. Linux lists axes and buttons by evdev code.
+# This DualShock 4 reports ABS_X, ABS_Y, ABS_Z (L2), ABS_RX, ABS_RY, ABS_RZ (R2).
+# Its key bitmap includes the unused BTN_C and BTN_Z gaps, so the face
+# buttons are Cross, Circle, Triangle, Square at 0, 1, 3, 4, and L1/R1 at 6/7.
+XBOX_LAYOUT = {
+    "lx": 0,
+    "ly": 1,
+    "rx": 2,
+    "ry": 3,
+    "l2": 5,
+    "r2": 4,
+    "a": 0,
+    "b": 1,
+    "x": 3,
+    "y": 4,
+    "lb": 6,
+    "rb": 7,
+}
+PS4_LAYOUT = {
+    "lx": 0,
+    "ly": 1,
+    "rx": 3,
+    "ry": 4,
+    "l2": 2,
+    "r2": 5,
+    "a": 0,  # Cross, pause
+    "b": 1,  # Circle, sound
+    "y": 3,  # Triangle, head control
+    "x": 4,  # Square, projector
+    "lb": 6,  # L1, sprint
+    "rb": 7,  # R1
+}
+
+
+def _layout_for(joystick):
+    name = joystick.get_name().lower()
+    hints = ("wireless controller", "dualshock", "dualsense", "sony")
+    if any(hint in name for hint in hints):
+        return "ps4", PS4_LAYOUT
+    return "xbox", XBOX_LAYOUT
+
 
 class XBoxController:
     def __init__(self, command_freq, only_head_control=False):
@@ -29,7 +70,11 @@ class XBoxController:
         pygame.init()
         self.p1 = pygame.joystick.Joystick(0)
         self.p1.init()
-        print(f"Loaded joystick with {self.p1.get_numaxes()} axes.")
+        self.pad_name, self.pad = _layout_for(self.p1)
+        print(
+            f"Loaded {self.pad_name} controller '{self.p1.get_name()}' "
+            f"with {self.p1.get_numaxes()} axes."
+        )
         self.cmd_queue = Queue(maxsize=1)
 
         self.A_pressed = False
@@ -53,13 +98,13 @@ class XBoxController:
         left_trigger = self.last_left_trigger
         right_trigger = self.last_right_trigger
 
-        l_x = -1 * self.p1.get_axis(0)
-        l_y = -1 * self.p1.get_axis(1)
-        r_x = -1 * self.p1.get_axis(2)
-        r_y = -1 * self.p1.get_axis(3)
+        l_x = -1 * self.p1.get_axis(self.pad["lx"])
+        l_y = -1 * self.p1.get_axis(self.pad["ly"])
+        r_x = -1 * self.p1.get_axis(self.pad["rx"])
+        r_y = -1 * self.p1.get_axis(self.pad["ry"])
 
-        right_trigger = np.around((self.p1.get_axis(4) + 1) / 2, 3)
-        left_trigger = np.around((self.p1.get_axis(5) + 1) / 2, 3)
+        right_trigger = np.around((self.p1.get_axis(self.pad["r2"]) + 1) / 2, 3)
+        left_trigger = np.around((self.p1.get_axis(self.pad["l2"]) + 1) / 2, 3)
 
         if left_trigger < 0.1:
             left_trigger = 0
@@ -120,24 +165,24 @@ class XBoxController:
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
 
-                if self.p1.get_button(0):  # A button
+                if self.p1.get_button(self.pad["a"]):  # Cross / A, pause
                     self.A_pressed = True
 
-                if self.p1.get_button(1):  # B button
+                if self.p1.get_button(self.pad["b"]):  # Circle / B, sound
                     self.B_pressed = True
 
-                if self.p1.get_button(3):  # X button
+                if self.p1.get_button(self.pad["x"]):  # Square / X, projector
                     self.X_pressed = True
 
-                if self.p1.get_button(4):  # Y button
+                if self.p1.get_button(self.pad["y"]):  # Triangle / Y, head control
                     self.Y_pressed = True
                     if not self.only_head_control:
                         self.head_control_mode = not self.head_control_mode
 
-                if self.p1.get_button(6):  # LB button
+                if self.p1.get_button(self.pad["lb"]):  # L1 / LB, sprint
                     self.LB_pressed = True
 
-                if self.p1.get_button(7):  # RB button
+                if self.p1.get_button(self.pad["rb"]):  # R1 / RB
                     self.RB_pressed = True
 
             if event.type == pygame.JOYBUTTONUP:
